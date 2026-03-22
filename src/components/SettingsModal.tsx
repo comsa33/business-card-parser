@@ -166,7 +166,7 @@ export default function SettingsModal({
           <div className="bg-blue-50 rounded-xl p-3 flex gap-2 text-sm">
             <AlertCircle size={18} className="text-[var(--color-primary)] shrink-0 mt-0.5" />
             <div className="text-[var(--color-text-secondary)]">
-              <p>데이터는 브라우저에 저장됩니다. 동기들과 공유하려면 JSON으로 내보내기 후 파일을 공유해주세요.</p>
+              <p>데이터는 서버에 저장되어 모든 동기가 함께 볼 수 있습니다. 엑셀/JSON 내보내기로 개인 백업도 가능합니다.</p>
             </div>
           </div>
         </div>
