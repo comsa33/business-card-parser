@@ -25,8 +25,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, contact: parsed });
   } catch (error) {
     console.error("Parse error:", error);
+    const message = error instanceof Error ? error.message : "알 수 없는 오류";
     return NextResponse.json(
-      { success: false, error: "명함 파싱에 실패했습니다. 다시 시도해주세요." },
+      { success: false, error: `명함 파싱 실패: ${message}` },
       { status: 500 }
     );
   }
