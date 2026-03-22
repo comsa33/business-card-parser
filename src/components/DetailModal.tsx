@@ -140,7 +140,12 @@ export default function DetailModal({
             <Pencil size={16} />
           </button>
           <button
-            onClick={() => { onDelete(contact.id); onClose(); }}
+            onClick={() => {
+              if (confirm("이 연락처를 삭제하시겠습니까?")) {
+                onDelete(contact.id);
+                onClose();
+              }
+            }}
             className="py-3 px-5 border border-red-200 text-red-500 rounded-xl font-medium hover:bg-red-50 transition"
           >
             <Trash2 size={16} />
