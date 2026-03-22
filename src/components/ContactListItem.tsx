@@ -5,15 +5,16 @@ import { Phone, Mail, Pencil, Trash2 } from "lucide-react";
 
 interface ContactListItemProps {
   contact: Contact;
+  onClick: (contact: Contact) => void;
   onEdit: (contact: Contact) => void;
   onDelete: (id: string) => void;
 }
 
-export default function ContactListItem({ contact, onEdit, onDelete }: ContactListItemProps) {
+export default function ContactListItem({ contact, onClick, onEdit, onDelete }: ContactListItemProps) {
   const initials = contact.name.slice(0, 1);
 
   return (
-    <div className="bg-white rounded-xl border border-[var(--color-border)] p-3 flex items-center gap-3 hover:shadow-sm transition">
+    <div className="bg-white rounded-xl border border-[var(--color-border)] p-3 flex items-center gap-3 hover:shadow-sm transition cursor-pointer" onClick={() => onClick(contact)}>
       {/* Avatar */}
       {contact.imageUrl ? (
         <img
@@ -68,13 +69,13 @@ export default function ContactListItem({ contact, onEdit, onDelete }: ContactLi
       {/* Actions */}
       <div className="flex shrink-0 gap-0.5">
         <button
-          onClick={() => onEdit(contact)}
+          onClick={(e) => { e.stopPropagation(); onEdit(contact); }}
           className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-blue-50 rounded-lg transition"
         >
           <Pencil size={15} />
         </button>
         <button
-          onClick={() => onDelete(contact.id)}
+          onClick={(e) => { e.stopPropagation(); onDelete(contact.id); }}
           className="p-2 text-[var(--color-text-secondary)] hover:text-red-500 hover:bg-red-50 rounded-lg transition"
         >
           <Trash2 size={15} />

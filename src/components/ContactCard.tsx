@@ -5,15 +5,16 @@ import { Building2, Phone, Mail, MapPin, Globe, Pencil, Trash2, User } from "luc
 
 interface ContactCardProps {
   contact: Contact;
+  onClick: (contact: Contact) => void;
   onEdit: (contact: Contact) => void;
   onDelete: (id: string) => void;
 }
 
-export default function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
+export default function ContactCard({ contact, onClick, onEdit, onDelete }: ContactCardProps) {
   const initials = contact.name.slice(0, 1);
 
   return (
-    <div className="contact-card bg-white rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
+    <div className="contact-card bg-white rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden cursor-pointer" onClick={() => onClick(contact)}>
       {/* Card Header */}
       <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] p-4 flex items-center gap-3">
         {contact.imageUrl ? (
@@ -105,14 +106,14 @@ export default function ContactCard({ contact, onEdit, onDelete }: ContactCardPr
       {/* Card Footer */}
       <div className="border-t border-[var(--color-border)] px-4 py-2.5 flex justify-end gap-1">
         <button
-          onClick={() => onEdit(contact)}
+          onClick={(e) => { e.stopPropagation(); onEdit(contact); }}
           className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-blue-50 rounded-lg transition"
           title="수정"
         >
           <Pencil size={16} />
         </button>
         <button
-          onClick={() => onDelete(contact.id)}
+          onClick={(e) => { e.stopPropagation(); onDelete(contact.id); }}
           className="p-2 text-[var(--color-text-secondary)] hover:text-red-500 hover:bg-red-50 rounded-lg transition"
           title="삭제"
         >

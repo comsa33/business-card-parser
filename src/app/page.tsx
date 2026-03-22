@@ -19,6 +19,7 @@ import ContactListItem from "@/components/ContactListItem";
 import UploadModal from "@/components/UploadModal";
 import EditModal from "@/components/EditModal";
 import SettingsModal from "@/components/SettingsModal";
+import DetailModal from "@/components/DetailModal";
 
 export default function Home() {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -28,6 +29,7 @@ export default function Home() {
   const [showUpload, setShowUpload] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [viewingContact, setViewingContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchContacts = useCallback(async () => {
@@ -262,6 +264,7 @@ export default function Home() {
               <ContactCard
                 key={contact.id}
                 contact={contact}
+                onClick={setViewingContact}
                 onEdit={setEditingContact}
                 onDelete={handleDeleteContact}
               />
@@ -273,6 +276,7 @@ export default function Home() {
               <ContactListItem
                 key={contact.id}
                 contact={contact}
+                onClick={setViewingContact}
                 onEdit={setEditingContact}
                 onDelete={handleDeleteContact}
               />
@@ -293,6 +297,13 @@ export default function Home() {
       )}
 
       {/* Modals */}
+      <DetailModal
+        isOpen={!!viewingContact}
+        contact={viewingContact}
+        onClose={() => setViewingContact(null)}
+        onEdit={setEditingContact}
+        onDelete={handleDeleteContact}
+      />
       <UploadModal
         isOpen={showUpload}
         onClose={() => setShowUpload(false)}
