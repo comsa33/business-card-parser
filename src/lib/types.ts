@@ -18,6 +18,7 @@ export interface Contact {
 }
 
 export type ViewMode = "card" | "list";
+export type SortMode = "name" | "recent";
 
 export interface ParseResult {
   success: boolean;

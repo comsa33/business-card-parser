@@ -9,8 +9,10 @@ import {
   Settings,
   Users,
   X,
+  ArrowDownAZ,
+  Clock,
 } from "lucide-react";
-import { Contact, ViewMode } from "@/lib/types";
+import { Contact, ViewMode, SortMode } from "@/lib/types";
 import Header from "@/components/Header";
 import ContactCard from "@/components/ContactCard";
 import ContactListItem from "@/components/ContactListItem";
@@ -22,6 +24,7 @@ export default function Home() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [showUpload, setShowUpload] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
@@ -109,20 +112,26 @@ export default function Home() {
   };
 
   const filteredContacts = useMemo(() => {
-    if (!searchQuery.trim()) return contacts;
-    const q = searchQuery.toLowerCase();
-    return contacts.filter(
-      (c) =>
-        c.name?.toLowerCase().includes(q) ||
-        c.nameEn?.toLowerCase().includes(q) ||
-        c.company?.toLowerCase().includes(q) ||
-        c.department?.toLowerCase().includes(q) ||
-        c.position?.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q) ||
-        c.mobile?.includes(q) ||
-        c.phone?.includes(q)
-    );
-  }, [contacts, searchQuery]);
+    let result = contacts;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name?.toLowerCase().includes(q) ||
+          c.nameEn?.toLowerCase().includes(q) ||
+          c.company?.toLowerCase().includes(q) ||
+          c.department?.toLowerCase().includes(q) ||
+          c.position?.toLowerCase().includes(q) ||
+          c.email?.toLowerCase().includes(q) ||
+          c.mobile?.includes(q) ||
+          c.phone?.includes(q)
+      );
+    }
+    if (sortMode === "name") {
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name, "ko"));
+    }
+    return result;
+  }, [contacts, searchQuery, sortMode]);
 
   if (loading) {
     return (
@@ -172,6 +181,18 @@ export default function Home() {
               </span>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setSortMode(sortMode === "recent" ? "name" : "recent")}
+                className={`p-2 rounded-lg transition ${
+                  sortMode === "name"
+                    ? "bg-[var(--color-primary)] text-white"
+                    : "text-[var(--color-text-secondary)] hover:bg-gray-100"
+                }`}
+                title={sortMode === "name" ? "이름순" : "최신순"}
+              >
+                {sortMode === "name" ? <ArrowDownAZ size={18} /> : <Clock size={18} />}
+              </button>
+              <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
               <button
                 onClick={() => setViewMode("card")}
                 className={`p-2 rounded-lg transition ${
@@ -292,7 +313,15 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="text-center py-4 text-xs text-[var(--color-text-secondary)]">
-        aSSIST AI PhD. 202603 기수
+        aSSIST AI PhD. 202603 기수 ·{" "}
+        <a
+          href="https://github.com/comsa33/business-card-parser"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--color-primary)] hover:underline"
+        >
+          GitHub
+        </a>
       </footer>
     </div>
   );
