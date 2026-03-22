@@ -12,7 +12,7 @@ export interface Contact {
   website?: string;
   fax?: string;
   memo?: string;
-  imageData?: string; // base64 thumbnail
+  imageUrl?: string; // Vercel Blob URL
   createdAt: string;
   updatedAt: string;
 }

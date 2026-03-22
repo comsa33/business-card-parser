@@ -15,9 +15,9 @@ export default function ContactListItem({ contact, onEdit, onDelete }: ContactLi
   return (
     <div className="bg-white rounded-xl border border-[var(--color-border)] p-3 flex items-center gap-3 hover:shadow-sm transition">
       {/* Avatar */}
-      {contact.imageData ? (
+      {contact.imageUrl ? (
         <img
-          src={contact.imageData}
+          src={contact.imageUrl}
           alt={contact.name}
           className="w-11 h-11 rounded-xl object-cover shrink-0"
         />

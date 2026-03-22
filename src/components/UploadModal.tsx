@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback } from "react";
 import { X, Upload, Camera, Loader2, Check, AlertCircle } from "lucide-react";
 import { Contact } from "@/lib/types";
-import { generateId } from "@/lib/storage";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -14,6 +13,7 @@ interface UploadModalProps {
 export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps) {
   const [step, setStep] = useState<"upload" | "parsing" | "review">("upload");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [parsedData, setParsedData] = useState<Partial<Contact>>({});
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,6 +22,7 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
   const resetState = useCallback(() => {
     setStep("upload");
     setImagePreview(null);
+    setImageUrl(null);
     setParsedData({});
     setError(null);
   }, []);
@@ -34,7 +35,6 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
   const processImage = async (file: File) => {
     setError(null);
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = async (e) => {
       const dataUrl = e.target?.result as string;
@@ -42,7 +42,6 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
       setStep("parsing");
 
       try {
-        // Extract base64 data
         const base64 = dataUrl.split(",")[1];
         const mimeType = file.type;
 
@@ -56,6 +55,7 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
 
         if (result.success) {
           setParsedData(result.contact);
+          setImageUrl(result.imageUrl || null);
           setStep("review");
         } else {
           setError(result.error || "파싱에 실패했습니다.");
@@ -87,7 +87,7 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
   const handleSave = () => {
     const now = new Date().toISOString();
     const contact: Contact = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       name: parsedData.name || "이름 없음",
       nameEn: parsedData.nameEn || undefined,
       company: parsedData.company || undefined,
@@ -99,7 +99,7 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
       address: parsedData.address || undefined,
       website: parsedData.website || undefined,
       fax: parsedData.fax || undefined,
-      imageData: imagePreview || undefined,
+      imageUrl: imageUrl || undefined,
       createdAt: now,
       updatedAt: now,
     };
@@ -140,7 +140,6 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* Upload Step */}
           {step === "upload" && (
             <div className="space-y-4">
               {error && (
@@ -191,7 +190,6 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
             </div>
           )}
 
-          {/* Parsing Step */}
           {step === "parsing" && (
             <div className="flex flex-col items-center py-12 gap-4">
               {imagePreview && (
@@ -208,7 +206,6 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
             </div>
           )}
 
-          {/* Review Step */}
           {step === "review" && (
             <div className="space-y-4">
               {imagePreview && (
@@ -239,7 +236,6 @@ export default function UploadModal({ isOpen, onClose, onAdd }: UploadModalProps
           )}
         </div>
 
-        {/* Footer */}
         {step === "review" && (
           <div className="p-4 border-t border-[var(--color-border)] flex gap-3">
             <button

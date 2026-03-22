@@ -16,9 +16,9 @@ export default function ContactCard({ contact, onEdit, onDelete }: ContactCardPr
     <div className="contact-card bg-white rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
       {/* Card Header */}
       <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] p-4 flex items-center gap-3">
-        {contact.imageData ? (
+        {contact.imageUrl ? (
           <img
-            src={contact.imageData}
+            src={contact.imageUrl}
             alt={contact.name}
             className="w-12 h-12 rounded-xl object-cover border-2 border-white/30"
           />

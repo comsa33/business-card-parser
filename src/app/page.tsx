@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Plus,
   Search,
@@ -11,13 +11,6 @@ import {
   X,
 } from "lucide-react";
 import { Contact, ViewMode } from "@/lib/types";
-import {
-  getContacts,
-  saveContacts,
-  addContact,
-  deleteContact,
-  updateContact,
-} from "@/lib/storage";
 import Header from "@/components/Header";
 import ContactCard from "@/components/ContactCard";
 import ContactListItem from "@/components/ContactListItem";
@@ -32,45 +25,89 @@ export default function Home() {
   const [showUpload, setShowUpload] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load data on mount
-  useEffect(() => {
-    setContacts(getContacts());
-    const savedView = localStorage.getItem("view-mode") as ViewMode;
-    if (savedView) setViewMode(savedView);
-    setMounted(true);
+  const fetchContacts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/contacts");
+      if (res.ok) {
+        const data = await res.json();
+        setContacts(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch contacts:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Save view mode preference
   useEffect(() => {
-    if (mounted) localStorage.setItem("view-mode", viewMode);
-  }, [viewMode, mounted]);
+    fetchContacts();
+    const savedView = localStorage.getItem("view-mode") as ViewMode;
+    if (savedView) setViewMode(savedView);
+  }, [fetchContacts]);
 
-  const handleAddContact = (contact: Contact) => {
-    setContacts(addContact(contact));
-  };
+  useEffect(() => {
+    if (!loading) localStorage.setItem("view-mode", viewMode);
+  }, [viewMode, loading]);
 
-  const handleDeleteContact = (id: string) => {
-    if (confirm("이 연락처를 삭제하시겠습니까?")) {
-      setContacts(deleteContact(id));
+  const handleAddContact = async (contact: Contact) => {
+    try {
+      const res = await fetch("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contact),
+      });
+      if (res.ok) {
+        await fetchContacts();
+      }
+    } catch (error) {
+      console.error("Failed to add contact:", error);
     }
   };
 
-  const handleUpdateContact = (updated: Contact) => {
-    setContacts(updateContact(updated.id, updated));
+  const handleDeleteContact = async (id: string) => {
+    if (!confirm("이 연락처를 삭제하시겠습니까?")) return;
+    try {
+      const res = await fetch(`/api/contacts/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setContacts((prev) => prev.filter((c) => c.id !== id));
+      }
+    } catch (error) {
+      console.error("Failed to delete contact:", error);
+    }
   };
 
-  const handleImport = (imported: Contact[]) => {
-    const existing = getContacts();
-    const existingIds = new Set(existing.map((c) => c.id));
-    const newContacts = imported.filter((c) => !existingIds.has(c.id));
-    const merged = [...newContacts, ...existing];
-    saveContacts(merged);
-    setContacts(merged);
+  const handleUpdateContact = async (updated: Contact) => {
+    try {
+      const res = await fetch(`/api/contacts/${updated.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      if (res.ok) {
+        await fetchContacts();
+      }
+    } catch (error) {
+      console.error("Failed to update contact:", error);
+    }
   };
 
-  // Filter contacts by search
+  const handleImport = async (imported: Contact[]) => {
+    try {
+      for (const contact of imported) {
+        await fetch("/api/contacts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contact),
+        });
+      }
+      await fetchContacts();
+    } catch (error) {
+      console.error("Failed to import contacts:", error);
+    }
+  };
+
   const filteredContacts = useMemo(() => {
     if (!searchQuery.trim()) return contacts;
     const q = searchQuery.toLowerCase();
@@ -87,7 +124,7 @@ export default function Home() {
     );
   }, [contacts, searchQuery]);
 
-  if (!mounted) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
@@ -173,7 +210,6 @@ export default function Home() {
       {/* Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-4">
         {contacts.length === 0 ? (
-          /* Empty state */
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
               <Users size={36} className="text-[var(--color-primary)]" />
@@ -193,7 +229,6 @@ export default function Home() {
             </div>
           </div>
         ) : filteredContacts.length === 0 ? (
-          /* No search results */
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Search size={36} className="text-[var(--color-text-secondary)] mb-3" />
             <p className="text-sm text-[var(--color-text-secondary)]">
@@ -201,7 +236,6 @@ export default function Home() {
             </p>
           </div>
         ) : viewMode === "card" ? (
-          /* Card View */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredContacts.map((contact) => (
               <ContactCard
@@ -213,7 +247,6 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          /* List View */
           <div className="space-y-2">
             {filteredContacts.map((contact) => (
               <ContactListItem
